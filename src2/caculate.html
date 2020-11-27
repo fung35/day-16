@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./js/vue.js"></script>
+    <script src="./js/vuex.js"></script>
+    <style>
+        #app{
+            position:relative;
+            margin:0 auto;
+            width:300px;
+            height:355px;
+        }
+        .show{
+            width:298px;
+            height:100px;
+            border:1px solid #9A9A9A;
+            background:#EEEEF2;
+        }
+        .result{
+            height:50px;
+            text-align:right;
+            line-height:50px;
+        }
+        .enter{
+            height:50px;
+            text-align:right;
+            line-height:50px;
+        }
+        .keyboard{
+            width:300px;
+            height:300px;
+        }
+        [data-value]{
+            diaplay:inline-block;
+            width:24.3%;
+            height:75px;
+            text-align:center;
+            line-height:75px;
+            float:left;
+            border:1px solid #9A9A9A;
+            cursor:pointer;
+        }
+        [data-value='=']{
+            background:#EE6633;
+            color:#fff;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <div class="show">
+        <div class="result">{{result}}</div>
+        <div class="enter">{{enter==='' ? 0 : enter}}</div>
+    </div>
+    <div class="keyboard">
+        <keyboard v-for="item in keys" :value="item"></keyboard>
+    </div>
+</div>
+</body>
+<script>
+    /*创建仓库store*/
+    const store=new Vuex.Store({
+        state:{
+            result:'',
+            enter:'',
+        },
+        mutations:{
+            calculate(state,value){
+                if(value=="="){
+                    state.result=eval(state.enter);
+                    state.enter+=value;
+                } else if(value=="C"){
+                    state.result=state.enter="";
+                } else {
+                    state.enter+=value;
+                }
+            }
+        }
+    });
+
+    /*自定义组件*/
+    Vue.component('keyboard',{
+        /*接受参数value，代表键盘值*/
+        props:['value'],
+        /*模板，div标签里添加了动态属性data-value*/
+        template:
+            `<div
+                 @click="getValue"
+                 :data-value="value">
+                 {{value}}
+             </div>`,
+        methods:{
+            //点击事件处理函数
+            getValue(event){
+                //获取当前的按键的值
+                let val=event.target.dataset.value;
+                //通过commit提交mutation
+                this.$store.commit('calculate',val);
+            }
+        }
+    });
+
+    const vm=new Vue({
+        el:"#app",
+
+        //es6语法，相当于store:store,用于引入store，然后就可以通过this.$store访问到
+        store,
+        data:{
+            keys:[
+                'C','+','-','*',
+                '7','8','9','/',
+                '4','5','6','0',
+                '1','2','3','=',
+            ]
+        },
+        //增加计算属性
+        computed:{
+            result(){
+                //通过this.$store获取仓库的数据result
+                return this.$store.state.result;
+            },
+            enter(){
+                //通过this.$store获取仓库的数据enter
+                return this.$store.state.enter;
+            }
+        }
+    });
+</script>
+</html>
